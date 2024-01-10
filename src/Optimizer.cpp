@@ -6,8 +6,9 @@
 
 namespace opt {
 class OptimizerVisitor : public ASTVisitor{
-    llvm::StringSet<> Scope; // StringSet to store live variables
-    llvm::StringSet<> potentialVar;
+    llvm::StringSet<> Live; // StringSet to store live variables
+    llvm::StringSet<> potentialVar; // StringSet to store variables that have the potential to be alive
+    llvm::StringSet<> noLive;
     bool liveVar;
     llvm::SmallVector<AST *> liveCode;
 public:
@@ -15,7 +16,7 @@ public:
     // Constructor
     OptimizerVisitor(){
         llvm::StringRef result("result");
-        Scope.insert(result);
+        Live.insert(result);
         liveVar = false;
     } 
 
@@ -32,7 +33,7 @@ public:
         
         for (llvm::SmallVector<AST *>::reverse_iterator I = Node.rbegin(), E = Node.rend(); I != E; ++I)
         {
-            // for (const auto &entry : Scope) {
+            // for (const auto &entry : Live) {
             //     llvm::outs() << entry.getKey() << " ";
             // }
             // llvm::outs() << "\n";
@@ -46,7 +47,7 @@ public:
                 liveCode.push_back(*I);
                 
                 for (const auto &entry : potentialVar) {
-                    Scope.insert(entry.getKey());
+                    Live.insert(entry.getKey());
                 }
             
             }
@@ -59,12 +60,10 @@ public:
     // Visit function for Final nodes
     virtual void visit(Final &Node) override {
         if (Node.getKind() == Final::Ident) {
-            if (Scope.count(Node.getVal())) {
+            if (Live.count(Node.getVal())) {
                 liveVar = true;
             }
-            else{
-                potentialVar.insert(Node.getVal());
-            }
+            potentialVar.insert(Node.getVal());
         }
     };
 
@@ -85,11 +84,18 @@ public:
         
         // llvm::outs() << "in ass ";
         Final *dest = Node.getLeft();
-        dest->accept(*this);
+        if (Live.count(dest->getVal())) {
+            liveVar = true;
+        }
 
         // llvm::outs() << "Check livevar in assignment: " <<liveVar <<"\n";
 
         if (liveVar){
+
+            if (Node.getAssignKind() == Assignment::AssignKind::Assign){
+                noLive.insert(dest->getVal());
+                Live.erase(dest->getVal());
+            }
             Expr *Right = Node.getRight();
             if (Right)
                 Right->accept(*this);
@@ -100,7 +106,7 @@ public:
     virtual void visit(Declaration &Node) override {
         // llvm::outs() << "in dec ";
         for (llvm::SmallVector<llvm::StringRef, 8>::const_iterator I = Node.varBegin(), E = Node.varEnd(); I != E; ++I) {
-            if (Scope.count(*I)){
+            if (Live.count(*I) || noLive.count(*I)){
                 liveVar = true;
             }
         }

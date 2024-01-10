@@ -1,6 +1,7 @@
 #include "CodeGen.h"
 #include "Parser.h"
 #include "Sema.h"
+#include "Optimizer.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/InitLLVM.h"
 #include "llvm/Support/raw_ostream.h"
@@ -44,9 +45,12 @@ int main(int argc, const char **argv)
         return 1;
     }
 
+    Optimizer Optimizer;
+    llvm::SmallVector<AST *> optimizedTree = Optimizer.optimize(Tree);
+
     // Generate code for the AST using a code generator.
     CodeGen CodeGenerator;
-    CodeGenerator.compile(Tree);
+    CodeGenerator.compile(new Program(optimizedTree));
 
     // The program executed successfully.
     return 0;

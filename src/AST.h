@@ -79,6 +79,10 @@ public:
 
   dataVector::const_iterator end() { return data.end(); }
 
+  dataVector::reverse_iterator rbegin() { return data.rbegin(); }
+
+  dataVector::reverse_iterator rend() { return data.rend(); }
+
   virtual void accept(ASTVisitor &V) override
   {
     V.visit(*this);

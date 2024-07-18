@@ -5,22 +5,14 @@
 <h3>      </h3>
 
 
-This project focuses on designing and implementing a simple compiler using llvm. To build the project, execute `build.sh`:
+This project focuses on designing and implementing a simple compiler using llvm. To build the project, execute:
 
 ```bash
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make
+$ ./build.sh
 ```
-To compile your code, replace it with the code in `input.txt` and execute `run.sh`:
+To compile your code, replace it with the code in `input.txt` and execute:
 ```bash
-$ cd build
-$ cd src
-$ ./gsm "$(cat ../../input.txt)" > gsm.ll
-$ llc --filetype=obj -o=gsm.o gsm.ll
-$ clang -o gsmbin gsm.o ../../rtGSM.c
-$ ./gsmbin
+$ ./run.sh
 ```
 The compiler optimizer is designed in such a way that it considers a variable named `result` as the main output of the program and removes instructions that do not affect the value of `result`.
 This compiler displays the value assigned in each assignment as `The result is:  `.

@@ -29,6 +29,7 @@ This compiler displays the value assigned in each assignment as `The result is: 
 
 Input:
 ```
+int a = 9;
 int result = 8;
 result = 3;
 result = 5 + a;
